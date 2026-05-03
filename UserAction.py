@@ -34,6 +34,20 @@ class UserAction :
                     return False,"Użytkownik nie posiada konta, najpierw zarejestruj się."
         except sqlite3.Error as e:
             return False,f"Błąd bazy danych : {e}"
+    def EditPassword(self,email,oldpassword,newpassword):
+        try:
+            with self.database.GetConnectionDb() as connect:
+                cursor = connect.cursor()
+                cursor.execute("SELECT NAME FROM USERS WHERE EMAIL = ? AND PASSWORD = ?", (email,oldpassword,))
+                check = cursor.fetchone()
+                if check:
+                    cursor.execute("UPDATE USERS SET PASSWORD = ? WHERE EMAIL = ?",(newpassword,email))
+                    return True, f"Zaktualizowano hasło"
+                else:
+                    return False,f"Użytkownik o takim emailu nie istnieje"
+        except sqlite3.Error as e:
+            return False,f"Błąd bazy danych : {e}"
+
     def CheckBook(self,barcode):
         with self.database.GetConnectionDb() as connect:
             cursor = connect.cursor()
@@ -54,5 +68,18 @@ class UserAction :
                     cursor.execute("INSERT INTO BOOKS(BARCODE,TITLE,AUTHOR,PUBLISHING_HOUSE,YEAR,KIND) VALUES (?,?,?,?,?,?)",
                                    (barcode, title, author, publishing_house, year, kind))
                     return True,"Dodano książkę do bazy"
+        except sqlite3.Error as e:
+            return False,f"Błąd bazy danych: {e}"
+    def AddToList(self,barcode,id_user, status, rate ,note):
+        try:
+            with self.database.GetConnectionDb() as connect:
+                cursor = connect.cursor()
+                cursor.execute("SELECT ID_BOOK FROM BOOKS WHERE BARCODE = ?",(barcode,))
+                book = cursor.fetchone()
+                if book:
+                    cursor.execute("INSERT INTO MAGAZINE(ID_USER,ID_BOOK,STATUS,RATE,NOTES) VALUES(?,?,?,?,?)",(id_user,book,status,rate,note))
+                    return True,f"Dodano książkę do listy : {status}"
+                else:
+                    return False,f"Najpierw dodaj książkę do bazy książek"
         except sqlite3.Error as e:
             return False,f"Błąd bazy danych: {e}"
