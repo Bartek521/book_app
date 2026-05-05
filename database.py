@@ -1,24 +1,24 @@
 import sqlite3
 
-class datebase_book:
+class database:
         def __init__(self,db_name = 'datebase.db'):
                 self.db_name = db_name
-        def GetConnectonDb(self):
+        def GetConnectionDb(self):
                 connect_db = sqlite3.connect(self.db_name)
                 cursor = connect_db.cursor()
                 cursor.execute("PRAGMA FOREIGN_KEYS = ON")
                 return connect_db
         def InitDb(self):
-                with self.GetConnectonDb() as database:
+                with self.GetConnectionDb() as database:
                         cursor = database.cursor()
-                        self.cursor.execute(''' CREATE TABLE IF NOT EXISTS USERS
+                        cursor.execute(''' CREATE TABLE IF NOT EXISTS USERS
                                            (ID_USER INTEGER PRIMARY KEY AUTOINCREMENT,
                                             NAME TEXT NOT NULL,
-                                            SECONDNAME TEXT NOT NULL,
+                                            LASTNAME TEXT NOT NULL,
                                             EMAIL TEXT UNIQUE NOT NULL CHECK (EMAIL LIKE '%@%'),
                                             PASSWORD TEXT NOT NULL CHECK (LENGTH(PASSWORD)>7),
                                             ROLA TEXT DEFAULT "USER" );''');
-                        self.cursor.execute('''CREATE TABLE IF NOT EXISTS BOOKS
+                        cursor.execute('''CREATE TABLE IF NOT EXISTS BOOKS
                                           (ID_BOOK INTEGER PRIMARY KEY AUTOINCREMENT,
                                            BARCODE TEXT UNIQUE NOT NULL,
                                            TITLE TEXT NOT NULL,
@@ -27,7 +27,7 @@ class datebase_book:
                                            YEAR VARCHAR(4) NOT NULL,
                                            KIND TEXT NOT NULL);
                                            ''')
-                        self.cursor.execute('''CREATE TABLE IF NOT EXISTS MAGAZINE
+                        cursor.execute('''CREATE TABLE IF NOT EXISTS MAGAZINE
                                           (ID_OPERATION INTEGER PRIMARY KEY AUTOINCREMENT,
                                            ID_USER INTEGER NOT NULL,
                                            ID_BOOK INTEGER NOT NULL,
@@ -37,7 +37,7 @@ class datebase_book:
                                            FOREIGN KEY(ID_USER) REFERENCES USERS(ID_USER),
                                            FOREIGN KEY(ID_BOOK) REFERENCES BOOKS(ID_BOOK));
                                            ''')
-                        self.datebase.commit()
+                        database.commit()
         def DbClose(self):
                 self.cursor.close()
                 self.datebase.close()

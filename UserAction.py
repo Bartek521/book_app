@@ -7,27 +7,27 @@ class UserAction :
         with self.database.GetConnectionDb() as connect:
             cursor = connect.cursor()
             cursor.execute("SELECT ID_USER FROM USERS WHERE EMAIL = ?",(email,))
-            if cursor.fetchone():
+            if cursor.fetchall():
                 return True
             else:
                 return False
-    def AddUser(self, name,secondname,email,password,rola):
+    def AddUser(self, name,lastname,email,password,rola):
         try:
             with self.database.GetConnectionDb() as connect:
                 if self.CheckUsers(email):
                     return False,"Email jest już przypisany do innego użytkownika"
                 else:
                     cursor = connect.cursor()
-                    cursor.execute("INSERT INTO USERS(NAME,SECONDNAME,EMAIL,PASSWORD,ROLA),VALUES(?,?,?,?,?)",(name,secondname,email,password,rola))
-                    return True,"Zarejestrowano"
+                    cursor.execute("INSERT INTO USERS(NAME,LASTNAME,EMAIL,PASSWORD,ROLA) VALUES(?,?,?,?,?)",(name,lastname,email,password,rola))
+                    return True,"Konto zostało utworzone"
         except sqlite3.Error as e:
             return False,f"Błąd bazy danych :{e}"
     def Login(self,email, password):
         try:
             with self.database.GetConnectionDb() as connect:
                 cursor = connect.cursor()
-                cursor.execute("SELECT ID_USER FROM USERS WHERE (UPPER(EMAIL)=UPPER(?) AND PASSWORD = ?",(email,password,))
-                user = cursor.fetchone()
+                cursor.execute("SELECT ID_USER FROM USERS WHERE (UPPER(EMAIL)=UPPER(?) AND PASSWORD = ?)",(email,password,))
+                user = cursor.fetchall()
                 if user:
                     return user,"Użytkownik zalogowany",
                 else:
@@ -39,7 +39,7 @@ class UserAction :
             with self.database.GetConnectionDb() as connect:
                 cursor = connect.cursor()
                 cursor.execute("SELECT NAME FROM USERS WHERE EMAIL = ? AND PASSWORD = ?", (email,oldpassword,))
-                check = cursor.fetchone()
+                check = cursor.fetchall()
                 if check:
                     cursor.execute("UPDATE USERS SET PASSWORD = ? WHERE EMAIL = ?",(newpassword,email))
                     return True, f"Zaktualizowano hasło"
@@ -52,7 +52,7 @@ class UserAction :
         with self.database.GetConnectionDb() as connect:
             cursor = connect.cursor()
             cursor.execute("SELECT ID_BOOK FORM BOOKS WHERE BARCODE=?",(barcode,))
-            book = cursor.fetchone()
+            book = cursor.fetchall()
             if book:
                 return True
             else:
@@ -75,11 +75,21 @@ class UserAction :
             with self.database.GetConnectionDb() as connect:
                 cursor = connect.cursor()
                 cursor.execute("SELECT ID_BOOK FROM BOOKS WHERE BARCODE = ?",(barcode,))
-                book = cursor.fetchone()
+                book = cursor.fetchall()
                 if book:
-                    cursor.execute("INSERT INTO MAGAZINE(ID_USER,ID_BOOK,STATUS,RATE,NOTES) VALUES(?,?,?,?,?)",(id_user,book,status,rate,note))
+                    cursor.execute("INSERT INTO MAGAZINE(ID_USER,ID_BOOK,STATUS,RATE,NOTES) VALUES(?,?,?,?,?)",(id_user,book[0],status,rate,note))
                     return True,f"Dodano książkę do listy : {status}"
                 else:
                     return False,f"Najpierw dodaj książkę do bazy książek"
         except sqlite3.Error as e:
             return False,f"Błąd bazy danych: {e}"
+    def DownloadList(self,id_user, status):
+        try:
+            with self.database.GetConnectionDb() as connect:
+                cursor = connect.cursor()
+                cursor.execute('''SELECT * FROM BOOKS b JOIN MAGAZINE m ON b.ID_BOOK = m.ID_BOOK
+                                  WHERE m.ID_USER = ? AND m.STATUS = ?''',(id_user,status,))
+                books = cursor.fetchall()
+                return books
+        except sqlite3.Error as e:
+            return False,f"Błąd przy pobieraniu listy : {e}"
