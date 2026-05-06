@@ -57,7 +57,7 @@ class UserAction :
                 return True
             else:
                 return False
-    def AddBook(self,barcode,title,author,publishing_house,year,kind):
+    def AddBook(self,barcode,title,author,publishing_house,year,kind,id_user):
         try:
             with self.database.GetConnectionDb() as connect:
                 cursor = connect.cursor()
@@ -65,8 +65,8 @@ class UserAction :
                 if book:
                     return False,"Książka o takim kodzie kreskowym już istnieje"
                 else:
-                    cursor.execute("INSERT INTO BOOKS(BARCODE,TITLE,AUTHOR,PUBLISHING_HOUSE,YEAR,KIND) VALUES (?,?,?,?,?,?)",
-                                   (barcode, title, author, publishing_house, year, kind))
+                    cursor.execute("INSERT INTO BOOKS(BARCODE,TITLE,AUTHOR,PUBLISHING_HOUSE,YEAR,KIND,ID_USER) VALUES (?,?,?,?,?,?,?)",
+                                   (barcode, title, author, publishing_house, year, kind,id_user))
                     return True,"Dodano książkę do bazy"
         except sqlite3.Error as e:
             return False,f"Błąd bazy danych: {e}"
@@ -93,3 +93,16 @@ class UserAction :
                 return books
         except sqlite3.Error as e:
             return False,f"Błąd przy pobieraniu listy : {e}"
+    def UpdateStatus(self,id_user,barcode,new_status):
+        try:
+            with self.database.GetConnectionDb() as connect:
+                cursor = connect.cursor()
+                cursor.execute("SELECT ID_BOOK FROM BOOKS WHERE BARCODE = ?",(barcode,))
+                book_id = cursor.fetchone()[0]
+
+                cursor.execute('''UPDATE MAGAZINE SET STATUS = ?
+                                  WHERE ID_USER = ? AND ID_BOOK = ?''',
+                                  (new_status,id_user,book_id))
+                return True,"Zaktualizowano status"
+        except Exception as e:
+            return False,f"Błąd przy bazie danych : {e}"

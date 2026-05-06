@@ -25,7 +25,9 @@ class database:
                                            AUTHOR TEXT NOT NULL,
                                            PUBLISHING_HOUSE TEXT NOT NULL,
                                            YEAR VARCHAR(4) NOT NULL,
-                                           KIND TEXT NOT NULL);
+                                           KIND TEXT NOT NULL,
+                                           ID_USER INTEGER NOT NULL,
+                                           FOREIGN KEY(ID_USER) REFERENCES USERS(ID_USER));
                                            ''')
                         cursor.execute('''CREATE TABLE IF NOT EXISTS MAGAZINE
                                           (ID_OPERATION INTEGER PRIMARY KEY AUTOINCREMENT,
